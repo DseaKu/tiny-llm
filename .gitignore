@@ -2,6 +2,9 @@
 debug/
 target/
 
+# Locally installed ESP toolchain (created by `make toolchain`)
+.toolchain/
+
 # Editor configuration
 .vscode/
 .zed/
