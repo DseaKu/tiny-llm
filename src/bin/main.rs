@@ -29,19 +29,6 @@ const T0L: u16 = 68; // 0.85 µs
 const T1H: u16 = 64; // 0.80 µs
 const T1L: u16 = 36; // 0.45 µs
 
-/// Encodes one GRB color as 24 WS2812 bits plus an RMT end marker.
-fn encode(r: u8, g: u8, b: u8) -> [PulseCode; 25] {
-    let grb = (u32::from(g) << 16) | (u32::from(r) << 8) | u32::from(b);
-    let mut codes = [PulseCode::end_marker(); 25];
-    for (i, code) in codes.iter_mut().take(24).enumerate() {
-        *code = if grb & (1 << (23 - i)) != 0 {
-            PulseCode::new(Level::High, T1H, Level::Low, T1L)
-        } else {
-            PulseCode::new(Level::High, T0H, Level::Low, T0L)
-        };
-    }
-    codes
-}
 
 #[allow(
     clippy::large_stack_frames,
@@ -64,17 +51,8 @@ fn main() -> ! {
         .unwrap()
         .with_pin(peripherals.GPIO48);
 
-    let on = encode(0, 0, 32); // dim blue
-    let off = encode(0, 0, 0);
     let delay = Delay::new();
 
     loop {
-        for frame in [&on, &off] {
-            channel = match channel.transmit(frame) {
-                Ok(tx) => tx.wait().unwrap_or_else(|(_, ch)| ch),
-                Err((_, ch)) => ch,
-            };
-            delay.delay_millis(500);
-        }
     }
 }
